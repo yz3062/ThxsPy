@@ -137,3 +137,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# export excel files
+*.xlsx
+
+# zip files
+*.zip
