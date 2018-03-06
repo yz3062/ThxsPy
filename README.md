@@ -25,7 +25,26 @@ Open Command Prompt in Windows or Terminal in MacOS, change to the directory whe
 ```
 python ThxsPy.py
 ```
-When prompted to find input files, select all the files in the "Data" folder.
+You'll be prompted to confirm the version of Th spikes you're using
+
+![alt text](/README_screenshots/spike_prompt_ThxsPy.JPG)
+
+Click "Yes", and you'll then be prompted to select data files as well as a sample info file
+
+![alt text](/README_screenshots/data_selection_ThxsPy.JPG)
+
+Where you should double click "data" folder and select all the files in that folder
+
+![alt text](/README_screenshots/data_select_all_ThxsPy.JPG)
+
+Notice that alongside the data files, there's also a "sample_info.xlsx" file that looks like this
+
+![alt text](/README_screenshots/sample_info_screenshot.JPG)
+
+And Voila! Calculation is done and you're asked to save the output file
+
+![alt text](/README_screenshots/save_output_ThxyPy.JPG)
+
 
 ## License
 
