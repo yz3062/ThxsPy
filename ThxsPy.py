@@ -10,13 +10,22 @@ import numpy as np
 from scipy import stats # for linear regression
 from Tkinter import Tk
 from tkFileDialog import askopenfilenames, asksaveasfilename
+import tkMessageBox
 import sys
 import pandas as pd
 import ctypes
+import platform
+#import subprocess
 
-spike_answer = ctypes.windll.user32.MessageBoxA(0, "Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values", "2006-2 spike?", 4)
-if spike_answer == 7:
-    sys.exit()
+# check OS
+if platform.system() == 'Windows':
+    spike_answer = ctypes.cdll.user32.MessageBoxA(0, "Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values", "2006-2 spike?", 4)
+    if spike_answer == 7:
+        sys.exit()
+elif platform.system() == 'Darwin':
+    window = Tk()
+    window.wm_withdraw()
+    tkMessageBox.showinfo(title="2006-2 spike?", message="Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values")
 
 Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
 file_names = askopenfilenames(title="Select all the ICPMS output files and a \'sample_info' file") # show an "Open" dialog box and return the path to the selected file
