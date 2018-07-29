@@ -7,6 +7,7 @@ Next on todo list:
     find outlier in data and give warning to user
 '''
 import numpy as np
+import numpy.ma as ma
 from scipy import stats # for linear regression
 from Tkinter import Tk
 from tkFileDialog import askopenfilenames, asksaveasfilename
@@ -35,9 +36,27 @@ def return_five_point_avg(file_name):
     txt_handle = np.genfromtxt(file_name, delimiter='\t', skip_header=12)
     # get rid of first column (mass) and last column (nan)
     txt_handle = txt_handle[:,1:-1]
+    # If not blank, check and remove outliers
+    if 'Blank' not in file_name or 'blank' not in file_name:
+        txt_handle = reject_outliers(txt_handle)
     # average accros five points
-    return np.mean(txt_handle.reshape(len(txt_handle)/5, 5, -1),axis=1)
+    five_point_avg = ma.mean(txt_handle.reshape(len(txt_handle)/5, 5, -1),axis=1)
+    # A second check for outliers after the five point average, except when the file is Blank
+    if 'Blank' not in file_name or 'blank' not in file_name:
+        return reject_outliers(five_point_avg)
+    else:
+        return five_point_avg
     
+def reject_outliers(data, m = 3.):
+    # from https://stackoverflow.com/questions/11686720/is-there-a-numpy-builtin-to-reject-outliers-from-a-list
+#    # median approach
+#    d = np.abs(data - np.median(data, axis=1)[:,None])
+#    mdev = np.median(d,axis=1)
+#    s = d/mdev[:,None]# if mdev!=0 else 0.
+    # avg approach
+    d = np.abs(data - np.mean(data,axis=1)[:,None])
+    s = d/np.mean(data,axis=1)[:,None]
+    return ma.array(data,mask=np.greater(s,m))
 
 #%% process blanks and stds. Calculate tailcrxn slope and intercept
 names = [name for name in file_names if 'Blank' in name or 'blank' in name or
