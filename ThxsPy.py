@@ -37,12 +37,13 @@ def return_five_point_avg(file_name):
     # get rid of first column (mass) and last column (nan)
     txt_handle = txt_handle[:,1:-1]
     # If not blank, check and remove outliers
-    if 'Blank' not in file_name or 'blank' not in file_name:
+    if 'Blank' not in file_name and 'blank' not in file_name:
         txt_handle = reject_outliers(txt_handle)
     # average accros five points
     five_point_avg = ma.mean(txt_handle.reshape(len(txt_handle)/5, 5, -1),axis=1)
     # A second check for outliers after the five point average, except when the file is Blank
-    if 'Blank' not in file_name or 'blank' not in file_name:
+    if 'Blank' not in file_name and 'blank' not in file_name:
+        print file_name + " # outliers: " + str(ma.count_masked(five_point_avg))
         return reject_outliers(five_point_avg)
     else:
         return five_point_avg
@@ -330,4 +331,6 @@ export_df = pd.concat([sample_name_df,export_data_df],axis=1)
 
 #%% save to csv
 output_file_name = asksaveasfilename(title='Save the output file as')
+if 'xlsx' not in output_file_name:
+    output_file_name = output_file_name + '.xlsx'
 export_df.to_excel(output_file_name)
