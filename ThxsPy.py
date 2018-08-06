@@ -97,21 +97,21 @@ for file_name in names:
 # now do TailCrxn before processing UTh data file
 # two arrays to store intercepts and slopes in the sequence of
 # 236 vs 238, 234 vs 238, 229 vs 232, 230 vs 232, 234 vs 232
-intercepts_tailCrxn = np.zeros(5)
-slopes_tailCrxn = np.zeros(5)
-correlations_tailCrxn = np.zeros(5)
+intercepts_tailCrxn = np.zeros(4)
+slopes_tailCrxn = np.zeros(4)
+correlations_tailCrxn = np.zeros(4)
 U238_tailCrxn = np.concatenate((U_std_tailCrxn[0], blank_U_tailCrxn[0]))
 U236_tailCrxn = np.concatenate((U_std_tailCrxn[1], blank_U_tailCrxn[1]))
 slopes_tailCrxn[0], intercepts_tailCrxn[0], correlations_tailCrxn[0] = stats.linregress(U238_tailCrxn, U236_tailCrxn)[:3]
-U234_tailCrxn = np.concatenate((U_std_tailCrxn[2], blank_U_tailCrxn[2]))
-slopes_tailCrxn[1], intercepts_tailCrxn[1], correlations_tailCrxn[1] = stats.linregress(U238_tailCrxn, U234_tailCrxn)[:3]
+#U234_tailCrxn = np.concatenate((U_std_tailCrxn[2], blank_U_tailCrxn[2]))
+#slopes_tailCrxn[1], intercepts_tailCrxn[1], correlations_tailCrxn[1] = stats.linregress(U238_tailCrxn, U234_tailCrxn)[:3]
 Th232_TailCrxn = np.concatenate((Th_std_tailCrxn[0], blank_Th_tailCrxn[0]))
 Th229_TailCrxn = np.concatenate((Th_std_tailCrxn[1], blank_Th_tailCrxn[1]))
-slopes_tailCrxn[2], intercepts_tailCrxn[2], correlations_tailCrxn[2] = stats.linregress(Th232_TailCrxn, Th229_TailCrxn)[:3]
+slopes_tailCrxn[1], intercepts_tailCrxn[1], correlations_tailCrxn[1] = stats.linregress(Th232_TailCrxn, Th229_TailCrxn)[:3]
 Th230_TailCrxn = np.concatenate((Th_std_tailCrxn[2], blank_Th_tailCrxn[2]))
-slopes_tailCrxn[3], intercepts_tailCrxn[3], correlations_tailCrxn[3] = stats.linregress(Th232_TailCrxn, Th230_TailCrxn)[:3]
+slopes_tailCrxn[2], intercepts_tailCrxn[2], correlations_tailCrxn[2] = stats.linregress(Th232_TailCrxn, Th230_TailCrxn)[:3]
 Th234_TailCrxn = np.concatenate((Th_std_tailCrxn[3], blank_Th_tailCrxn[3]))
-slopes_tailCrxn[4], intercepts_tailCrxn[4], correlations_tailCrxn[4] = stats.linregress(Th232_TailCrxn, Th234_TailCrxn)[:3]
+slopes_tailCrxn[3], intercepts_tailCrxn[3], correlations_tailCrxn[3] = stats.linregress(Th232_TailCrxn, Th234_TailCrxn)[:3]
 
 #%% SRM_a
 names = [name for name in file_names if 'SRM' in name and 'analog' in name]
@@ -173,12 +173,11 @@ for i, file_name in enumerate(names):
     
     # first correct for tailing
     # correct 229
-    five_point_avg[0,:] -= slopes_tailCrxn[2] * five_point_avg[2,:] + intercepts_tailCrxn[2]
+    five_point_avg[0,:] -= slopes_tailCrxn[1] * five_point_avg[2,:] + intercepts_tailCrxn[1]
     # correct 230
-    five_point_avg[1,:] -= slopes_tailCrxn[3] * five_point_avg[2,:] + intercepts_tailCrxn[3]
+    five_point_avg[1,:] -= slopes_tailCrxn[2] * five_point_avg[2,:] + intercepts_tailCrxn[2]
     # correct 234, if negative set to 0
-    five_point_avg[3,:] -= (slopes_tailCrxn[1] * five_point_avg[-1,:] + intercepts_tailCrxn[1] 
-        + slopes_tailCrxn[-1] * five_point_avg[2,:] + intercepts_tailCrxn[-1])
+    five_point_avg[3,:] -= slopes_tailCrxn[3] * five_point_avg[2,:] + intercepts_tailCrxn[3]
     five_point_avg[3,:][five_point_avg[3,:] < 0] = 0
     # correct 236
     five_point_avg[-2,:] -= slopes_tailCrxn[0] * five_point_avg[-1,:] + intercepts_tailCrxn[0]
