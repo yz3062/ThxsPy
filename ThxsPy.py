@@ -131,7 +131,7 @@ for file_name in names:
                                                     ,:]/five_point_avg[1,:])
     SRM_a_238235_avg.append(two_hundred_run_238235_avg)
     two_hundred_run_238235_std = np.std(five_point_avg[2
-                                                   ,:]/five_point_avg[1,:])/np.sqrt(200)
+                                                   ,:]/five_point_avg[1,:])/np.sqrt(five_point_avg.shape[1])
     SRM_a_238235_std.append(two_hundred_run_238235_std)
     two_hundred_run_238235_RSD = two_hundred_run_238235_std/two_hundred_run_238235_avg
     SRM_a_238235_RSD.append(two_hundred_run_238235_RSD)
@@ -153,22 +153,25 @@ for file_name in names:
                                                     ,:]/five_point_avg[1,:])
     SRM_c_238235_avg.append(two_hundred_run_238235_avg)
     two_hundred_run_238235_std = np.std(five_point_avg[2
-                                                   ,:]/five_point_avg[1,:])/np.sqrt(200)
+                                                   ,:]/five_point_avg[1,:])/np.sqrt(five_point_avg.shape[1])
     SRM_c_238235_std.append(two_hundred_run_238235_std)
     two_hundred_run_238235_RSD = two_hundred_run_238235_std/two_hundred_run_238235_avg
     SRM_c_238235_RSD.append(two_hundred_run_238235_RSD)
 
 #%% sample results
-# set up the 2d array as in export spreadsheet
-# Columns: 238/236_avg	238/236_RSD	235/236_avg	235/236_RSD	234/236_avg	234/236_RSD	230/229_avg	230/229_stdev	232/229_avg	232/229_stdev
-# Rows: UTh1-20
-export = np.zeros((20,10))
 
 # if this is UTh data file
 names = [name for name in file_names if 'UTh.txt' in name]
 if not names:
     raise RuntimeError('No UTh files found!')
 names.sort()
+
+# set up the 2d array as in export spreadsheet
+# Columns: 238/236_avg	238/236_RSD	235/236_avg	235/236_RSD	234/236_avg	234/236_RSD	230/229_avg	230/229_stdev	232/229_avg	232/229_stdev
+# Rows: UTh1-num_samples
+num_sample = len(names)
+export = np.zeros((num_sample,10))
+
 for i, file_name in enumerate(names):
     five_point_avg = return_five_point_avg(file_name)
     
@@ -189,7 +192,7 @@ for i, file_name in enumerate(names):
                                                         ,:]/five_point_avg[-2,:])
     export[i,0] = two_hundred_run_238236_avg
     two_hundred_run_238236_std = np.std(five_point_avg[-1
-                                                        ,:]/five_point_avg[-2,:])/np.sqrt(200)
+                                                        ,:]/five_point_avg[-2,:])/np.sqrt(five_point_avg.shape[1])
     two_hundred_run_238236_RSD = two_hundred_run_238236_std/two_hundred_run_238236_avg
     export[i,1] = two_hundred_run_238236_RSD
     # 235/236 U
@@ -197,7 +200,7 @@ for i, file_name in enumerate(names):
                                                         ,:]/five_point_avg[-2,:])
     export[i,2] = two_hundred_run_235236_avg
     two_hundred_run_235236_std = np.std(five_point_avg[-3
-                                                        ,:]/five_point_avg[-2,:])/np.sqrt(200)
+                                                        ,:]/five_point_avg[-2,:])/np.sqrt(five_point_avg.shape[1])
     two_hundred_run_235236_RSD = two_hundred_run_235236_std/two_hundred_run_235236_avg
     export[i,3] = two_hundred_run_235236_RSD
     # 234/236 U
@@ -205,7 +208,7 @@ for i, file_name in enumerate(names):
                                                         ,:]/five_point_avg[-2,:])
     export[i,4] = two_hundred_run_234236_avg
     two_hundred_run_234236_std = np.std(five_point_avg[3
-                                                        ,:]/five_point_avg[-2,:])/np.sqrt(200)
+                                                        ,:]/five_point_avg[-2,:])/np.sqrt(five_point_avg.shape[1])
     two_hundred_run_234236_RSD = two_hundred_run_234236_std/two_hundred_run_234236_avg
     export[i,5] = two_hundred_run_234236_RSD
     # 230/229 Th
@@ -213,7 +216,7 @@ for i, file_name in enumerate(names):
                                                         ,:]/five_point_avg[0,:])
     export[i,6] = two_hundred_run_230229_avg
     two_hundred_run_230229_std = np.std(five_point_avg[1
-                                                        ,:]/five_point_avg[0,:])/np.sqrt(200)
+                                                        ,:]/five_point_avg[0,:])/np.sqrt(five_point_avg.shape[1])
     two_hundred_run_230229_RSD = two_hundred_run_230229_std/two_hundred_run_230229_avg
     export[i,7] = two_hundred_run_230229_RSD
     # 232/229 Th
@@ -221,7 +224,7 @@ for i, file_name in enumerate(names):
                                                         ,:]/five_point_avg[0,:])
     export[i,8] = two_hundred_run_232229_avg
     two_hundred_run_232229_std = np.std(five_point_avg[2
-                                                        ,:]/five_point_avg[0,:])/np.sqrt(200)
+                                                        ,:]/five_point_avg[0,:])/np.sqrt(five_point_avg.shape[1])
     two_hundred_run_232229_RSD = two_hundred_run_232229_std/two_hundred_run_232229_avg
     export[i,9] = two_hundred_run_232229_RSD
     
@@ -322,7 +325,7 @@ for i in range(5):
 export=np.delete(export,[2,3],1)
 
 # since numpy array can't have both string and float, converting to pandas dataframe and add sample name as the first column in export
-export_data_df = pd.DataFrame(data=export,index=np.arange(20),columns=['238U dpm/g',	'238U dpm/g 2 sigma',	'234U dpm/g',	'234U dpm/g 2 sigma',	'230Th dpm/g',	'230Th dpm/g 2 sigma',	'232Th dpm/g',	'232Th dpm/g 2 sigma'])
+export_data_df = pd.DataFrame(data=export,index=np.arange(num_sample),columns=['238U dpm/g',	'238U dpm/g 2 sigma',	'234U dpm/g',	'234U dpm/g 2 sigma',	'230Th dpm/g',	'230Th dpm/g 2 sigma',	'232Th dpm/g',	'232Th dpm/g 2 sigma'])
 if sample_info_type == 'txt':
 	sample_name_df = pd.DataFrame({'Sample name':sample_info['f0']})
 elif sample_info_type == 'xlsx':
