@@ -6,36 +6,55 @@ yzhou@ldeo.columbia.edu
 Next on todo list:
     find outlier in data and give warning to user
 '''
+# If directly import mpl, crashes. Source: https://stackoverflow.com/questions/32019556/matplotlib-crashing-tkinter-application/34109240#34109240
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib import pyplot as plt
 import numpy as np
 import numpy.ma as ma
 from scipy import stats # for linear regression
 from Tkinter import Tk
 from tkFileDialog import askopenfilenames, asksaveasfilename
-import tkMessageBox
 import sys
 import pandas as pd
-import ctypes
-import platform
+
 #import subprocess
 
-# check OS
-if platform.system() == 'Windows':
-    spike_answer = ctypes.cdll.user32.MessageBoxA(0, "Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values", "2006-2 spike?", 4)
-    if spike_answer == 7:
-        sys.exit()
-elif platform.system() == 'Darwin':
-    window = Tk()
-    window.wm_withdraw()
-    tkMessageBox.showinfo(title="2006-2 spike?", message="Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values")
+spike_answer = str(raw_input("Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values. [y] or n:") or 'y')
+if spike_answer == 'n':
+    sys.exit()
+figure_answer = str(raw_input("Do you want to inspect ICPMS raw output in figures?[y] or n:") or 'y')
+
+
+## check OS
+#if platform.system() == 'Windows':
+#    spike_answer = ctypes.cdll.user32.MessageBoxA(0, "Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values", "2006-2 spike?", 4)
+#    if spike_answer == 7:
+#        sys.exit()
+#elif platform.system() == 'Darwin':
+#    window = Tk()
+#    window.wm_withdraw()
+#    tkMessageBox.showinfo(title="2006-2 spike?", message="Are you using 2006-2 UTh spike? If not, exit and search \'unspike\' in script and change its values")
 
 Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
 file_names = askopenfilenames(title="Select all the ICPMS output files and a \'sample_info' file") # show an "Open" dialog box and return the path to the selected file
 
 def return_five_point_avg(file_name):
     # start reading from row 12, which are name/unit/blank
-    txt_handle = np.genfromtxt(file_name, delimiter='\t', skip_header=12)
+    txt_handle = np.genfromtxt(file_name, delimiter='\t')
+    if np.all(np.isnan(txt_handle[0])):# if first line is empty
+        txt_handle = txt_handle[12:]
+    else:
+        txt_handle = txt_handle[7:]
+    if figure_answer == 'y':
+        txt_handle_r = np.transpose(txt_handle)
+        data_df = pd.DataFrame(data=txt_handle_r[1:-1,:])
+        data_df.plot(sharex=True,title=file_name)
+        plt.ion()
+        plt.show()
     # get rid of first column (mass) and last column (nan)
     txt_handle = txt_handle[:,1:-1]
+    
     # If not blank, check and remove outliers
     if 'Blank' not in file_name and 'blank' not in file_name:
         txt_handle = reject_outliers(txt_handle)
@@ -48,7 +67,7 @@ def return_five_point_avg(file_name):
     else:
         return five_point_avg
     
-def reject_outliers(data, m = 3.):
+def reject_outliers(data, m = 2.):
     # from https://stackoverflow.com/questions/11686720/is-there-a-numpy-builtin-to-reject-outliers-from-a-list
 #    # median approach
 #    d = np.abs(data - np.median(data, axis=1)[:,None])
@@ -167,7 +186,7 @@ if not names:
 names.sort()
 
 # set up the 2d array as in export spreadsheet
-# Columns: 238/236_avg	238/236_RSD	235/236_avg	235/236_RSD	234/236_avg	234/236_RSD	230/229_avg	230/229_stdev	232/229_avg	232/229_stdev
+# Columns: 238/236_avg    238/236_RSD    235/236_avg    235/236_RSD    234/236_avg    234/236_RSD    230/229_avg    230/229_stdev    232/229_avg    232/229_stdev
 # Rows: UTh1-num_samples
 num_sample = len(names)
 export = np.zeros((num_sample,10))
@@ -284,33 +303,33 @@ for i in [0,8]:
 # unspike
 unspike_matrix = np.array([[1.535934579,0.004656157,0.0030],[2.511807533,0.005569552,0.0022]])
 for i,weight in [(0,238),(1,235),(2,234)]:
-	if sample_info_type == 'txt':
-		export[:,i*2] = sample_info['f3']/1000*unspike_matrix[1,0]*export[:,i*2]*weight/236
-	elif sample_info_type == 'xlsx':
-		export[:,i*2] = sample_info[3]/1000*unspike_matrix[1,0]*export[:,i*2]*weight/236
-	export[:,i*2+1] = np.sqrt(unspike_matrix[1,2]**2+export[:,i*2+1]**2)
+    if sample_info_type == 'txt':
+        export[:,i*2] = sample_info['f3']/1000*unspike_matrix[1,0]*export[:,i*2]*weight/236
+    elif sample_info_type == 'xlsx':
+        export[:,i*2] = sample_info[3]/1000*unspike_matrix[1,0]*export[:,i*2]*weight/236
+    export[:,i*2+1] = np.sqrt(unspike_matrix[1,2]**2+export[:,i*2+1]**2)
 for i,weight in [(3,230),(4,232)]:
-	if sample_info_type == 'txt':
-		export[:,i*2] = sample_info['f3']/1000*unspike_matrix[0,0]*export[:,i*2]*weight/229
-	elif sample_info_type == 'xlsx':
-		export[:,i*2] = sample_info[3]/1000*unspike_matrix[0,0]*export[:,i*2]*weight/229
-	export[:,i*2+1] = np.sqrt(unspike_matrix[0,2]**2+export[:,i*2+1]**2)
+    if sample_info_type == 'txt':
+        export[:,i*2] = sample_info['f3']/1000*unspike_matrix[0,0]*export[:,i*2]*weight/229
+    elif sample_info_type == 'xlsx':
+        export[:,i*2] = sample_info[3]/1000*unspike_matrix[0,0]*export[:,i*2]*weight/229
+    export[:,i*2+1] = np.sqrt(unspike_matrix[0,2]**2+export[:,i*2+1]**2)
 #%%
 # Sed Cncn ng/g
 if sample_info_type == 'txt':
-	if not (sample_info['f0']=='BLANK').any():
-		raise RuntimeError('Cannot determine from sample name in sample info which sample is blank. Name it BLANK')
-	blank_index = np.argwhere(sample_info['f0']=='BLANK')
-	multiplication_factor=[0.001,1,1000,1000,0.001]
-	for i in range(5):
-		export[:,i*2] = (export[:,i*2]-export[blank_index,i*2])*multiplication_factor[i]/(sample_info['f2']/1000)
+    if not (sample_info['f0']=='BLANK').any():
+        raise RuntimeError('Cannot determine from sample name in sample info which sample is blank. Name it BLANK')
+    blank_index = np.argwhere(sample_info['f0']=='BLANK')
+    multiplication_factor=[0.001,1,1000,1000,0.001]
+    for i in range(5):
+        export[:,i*2] = (export[:,i*2]-export[blank_index,i*2])*multiplication_factor[i]/(sample_info['f2']/1000)
 elif sample_info_type == 'xlsx':
-	if not (sample_info[0]=='BLANK').any():
-		raise RuntimeError('Cannot determine from sample name in sample info which sample is blank. Name it BLANK')
-	blank_index = np.argwhere(sample_info[0]=='BLANK')
-	multiplication_factor=[0.001,1,1000,1000,0.001]
-	for i in range(5):
-		export[:,i*2] = np.squeeze(export[:,i*2]-export[blank_index,i*2])*multiplication_factor[i]/(sample_info[2]/1000)
+    if not (sample_info[0]=='BLANK').any():
+        raise RuntimeError('Cannot determine from sample name in sample info which sample is blank. Name it BLANK')
+    blank_index = np.argwhere(sample_info[0]=='BLANK')
+    multiplication_factor=[0.001,1,1000,1000,0.001]
+    for i in range(5):
+        export[:,i*2] = np.squeeze(export[:,i*2]-export[blank_index,i*2])*multiplication_factor[i]/(sample_info[2]/1000)
 #%%
 # Sed Cncn dpm/g
 sed_cncn_dpm_matrix=[0.752049334,0.013782268,0.045747747,0.242530074]
@@ -325,11 +344,11 @@ for i in range(5):
 export=np.delete(export,[2,3],1)
 
 # since numpy array can't have both string and float, converting to pandas dataframe and add sample name as the first column in export
-export_data_df = pd.DataFrame(data=export,index=np.arange(num_sample),columns=['238U dpm/g',	'238U dpm/g 2 sigma',	'234U dpm/g',	'234U dpm/g 2 sigma',	'230Th dpm/g',	'230Th dpm/g 2 sigma',	'232Th dpm/g',	'232Th dpm/g 2 sigma'])
+export_data_df = pd.DataFrame(data=export,index=np.arange(num_sample),columns=['238U dpm/g',    '238U dpm/g 2 sigma',    '234U dpm/g',    '234U dpm/g 2 sigma',    '230Th dpm/g',    '230Th dpm/g 2 sigma',    '232Th dpm/g',    '232Th dpm/g 2 sigma'])
 if sample_info_type == 'txt':
-	sample_name_df = pd.DataFrame({'Sample name':sample_info['f0']})
+    sample_name_df = pd.DataFrame({'Sample name':sample_info['f0']})
 elif sample_info_type == 'xlsx':
-	sample_name_df = pd.DataFrame({'Sample name':sample_info[0]})
+    sample_name_df = pd.DataFrame({'Sample name':sample_info[0]})
 export_df = pd.concat([sample_name_df,export_data_df],axis=1)
 
 #%% save to csv
