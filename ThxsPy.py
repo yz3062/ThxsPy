@@ -3,8 +3,6 @@
 This script reads ICP-MS output and calculates U/Th activities, which can then be plugged into the 'master' spreadsheet
 Yuxin Zhou
 yzhou@ldeo.columbia.edu
-Next on todo list:
-    find outlier in data and give warning to user
 '''
 # If directly import mpl, crashes. Source: https://stackoverflow.com/questions/32019556/matplotlib-crashing-tkinter-application/34109240#34109240
 import matplotlib
@@ -56,26 +54,30 @@ def return_five_point_avg(file_name):
     txt_handle = txt_handle[:,1:-1]
     
     # If not blank, check and remove outliers
-    if 'Blank' not in file_name and 'blank' not in file_name:
-        txt_handle = reject_outliers(txt_handle)
+#    if 'Blank' not in file_name and 'blank' not in file_name:
+#        txt_handle = reject_outliers(txt_handle)
+    txt_handle = reject_outliers(txt_handle)
     # average accros five points
     five_point_avg = ma.mean(txt_handle.reshape(len(txt_handle)/5, 5, -1),axis=1)
     # A second check for outliers after the five point average, except when the file is Blank
-    if 'Blank' not in file_name and 'blank' not in file_name:
-        print file_name + " # outliers: " + str(ma.count_masked(five_point_avg))
-        return reject_outliers(five_point_avg)
-    else:
-        return five_point_avg
+#    if 'Blank' not in file_name and 'blank' not in file_name:
+#        print file_name + " # outliers: " + str(ma.count_masked(five_point_avg))
+#        return reject_outliers(five_point_avg)
+#    else:
+#        return five_point_avg
+    five_point_avg_2nd_outlier_search = reject_outliers(five_point_avg)
+    print file_name + " # outliers: " + str(ma.count_masked(five_point_avg_2nd_outlier_search))
+    return five_point_avg_2nd_outlier_search
     
 def reject_outliers(data, m = 2.):
     # from https://stackoverflow.com/questions/11686720/is-there-a-numpy-builtin-to-reject-outliers-from-a-list
 #    # median approach
-#    d = np.abs(data - np.median(data, axis=1)[:,None])
-#    mdev = np.median(d,axis=1)
-#    s = d/mdev[:,None]# if mdev!=0 else 0.
-    # avg approach
-    d = np.abs(data - np.mean(data,axis=1)[:,None])
-    s = d/np.mean(data,axis=1)[:,None]
+    d = ma.abs(data - ma.median(data, axis=1)[:,None])
+    mdev = ma.median(d,axis=1)
+    s = d/mdev[:,None]# if mdev!=0 else 0.
+#    # avg approach
+#    d = np.abs(data - np.mean(data,axis=1)[:,None])
+#    s = d/np.mean(data,axis=1)[:,None]
     return ma.array(data,mask=np.greater(s,m))
 
 #%% process blanks and stds. Calculate tailcrxn slope and intercept
@@ -95,7 +97,7 @@ blank_Th_tailCrxn = [[],[],[],[]]
 for file_name in names:
     five_point_avg = return_five_point_avg(file_name)
 
-    two_hundred_run_avg = np.mean(five_point_avg, axis=1)
+    two_hundred_run_avg = ma.mean(five_point_avg, axis=1)
     if 'Blank' in file_name or 'blank' in file_name:
         blank_U_tailCrxn[0].append(two_hundred_run_avg[-1]) # U238
         blank_U_tailCrxn[1].append(two_hundred_run_avg[-2]) # U236
@@ -146,11 +148,11 @@ SRM_a_238235_RSD = []
 for file_name in names:
     five_point_avg = return_five_point_avg(file_name)
     
-    two_hundred_run_238235_avg = np.mean(five_point_avg[2
+    two_hundred_run_238235_avg = ma.mean(five_point_avg[2
                                                     ,:]/five_point_avg[1,:])
     SRM_a_238235_avg.append(two_hundred_run_238235_avg)
-    two_hundred_run_238235_std = np.std(five_point_avg[2
-                                                   ,:]/five_point_avg[1,:])/np.sqrt(five_point_avg.shape[1])
+    two_hundred_run_238235_std = ma.std(five_point_avg[2
+                                                   ,:]/five_point_avg[1,:])/ma.sqrt(five_point_avg.shape[1])
     SRM_a_238235_std.append(two_hundred_run_238235_std)
     two_hundred_run_238235_RSD = two_hundred_run_238235_std/two_hundred_run_238235_avg
     SRM_a_238235_RSD.append(two_hundred_run_238235_RSD)
@@ -168,11 +170,11 @@ SRM_c_238235_RSD = []
 for file_name in names:
     five_point_avg = return_five_point_avg(file_name)
     
-    two_hundred_run_238235_avg = np.mean(five_point_avg[2
+    two_hundred_run_238235_avg = ma.mean(five_point_avg[2
                                                     ,:]/five_point_avg[1,:])
     SRM_c_238235_avg.append(two_hundred_run_238235_avg)
-    two_hundred_run_238235_std = np.std(five_point_avg[2
-                                                   ,:]/five_point_avg[1,:])/np.sqrt(five_point_avg.shape[1])
+    two_hundred_run_238235_std = ma.std(five_point_avg[2
+                                                   ,:]/five_point_avg[1,:])/ma.sqrt(five_point_avg.shape[1])
     SRM_c_238235_std.append(two_hundred_run_238235_std)
     two_hundred_run_238235_RSD = two_hundred_run_238235_std/two_hundred_run_238235_avg
     SRM_c_238235_RSD.append(two_hundred_run_238235_RSD)
@@ -204,50 +206,51 @@ for i, file_name in enumerate(names):
     five_point_avg[3,:][five_point_avg[3,:] < 0] = 0
     # correct 236
     five_point_avg[-2,:] -= slopes_tailCrxn[0] * five_point_avg[-1,:] + intercepts_tailCrxn[0]
-    
+
     # calcualte the ratios
     # 238/236 U
-    two_hundred_run_238236_avg = np.mean(five_point_avg[-1
+    two_hundred_run_238236_avg = ma.mean(five_point_avg[-1
                                                         ,:]/five_point_avg[-2,:])
     export[i,0] = two_hundred_run_238236_avg
-    two_hundred_run_238236_std = np.std(five_point_avg[-1
-                                                        ,:]/five_point_avg[-2,:])/np.sqrt(five_point_avg.shape[1])
+    two_hundred_run_238236_std = ma.std(five_point_avg[-1
+                                                        ,:]/five_point_avg[-2,:])/ma.sqrt(five_point_avg.shape[1])
     two_hundred_run_238236_RSD = two_hundred_run_238236_std/two_hundred_run_238236_avg
     export[i,1] = two_hundred_run_238236_RSD
     # 235/236 U
-    two_hundred_run_235236_avg = np.mean(five_point_avg[-3
+    two_hundred_run_235236_avg = ma.mean(five_point_avg[-3
                                                         ,:]/five_point_avg[-2,:])
     export[i,2] = two_hundred_run_235236_avg
-    two_hundred_run_235236_std = np.std(five_point_avg[-3
-                                                        ,:]/five_point_avg[-2,:])/np.sqrt(five_point_avg.shape[1])
+    two_hundred_run_235236_std = ma.std(five_point_avg[-3
+                                                        ,:]/five_point_avg[-2,:])/ma.sqrt(five_point_avg.shape[1])
     two_hundred_run_235236_RSD = two_hundred_run_235236_std/two_hundred_run_235236_avg
     export[i,3] = two_hundred_run_235236_RSD
+
     # 234/236 U
-    two_hundred_run_234236_avg = np.mean(five_point_avg[3
+    two_hundred_run_234236_avg = ma.mean(five_point_avg[3
                                                         ,:]/five_point_avg[-2,:])
     export[i,4] = two_hundred_run_234236_avg
-    two_hundred_run_234236_std = np.std(five_point_avg[3
-                                                        ,:]/five_point_avg[-2,:])/np.sqrt(five_point_avg.shape[1])
+    two_hundred_run_234236_std = ma.std(five_point_avg[3
+                                                        ,:]/five_point_avg[-2,:])/ma.sqrt(five_point_avg.shape[1])
     two_hundred_run_234236_RSD = two_hundred_run_234236_std/two_hundred_run_234236_avg
     export[i,5] = two_hundred_run_234236_RSD
     # 230/229 Th
-    two_hundred_run_230229_avg = np.mean(five_point_avg[1
+    two_hundred_run_230229_avg = ma.mean(five_point_avg[1
                                                         ,:]/five_point_avg[0,:])
     export[i,6] = two_hundred_run_230229_avg
-    two_hundred_run_230229_std = np.std(five_point_avg[1
-                                                        ,:]/five_point_avg[0,:])/np.sqrt(five_point_avg.shape[1])
+    two_hundred_run_230229_std = ma.std(five_point_avg[1
+                                                        ,:]/five_point_avg[0,:])/ma.sqrt(five_point_avg.shape[1])
     two_hundred_run_230229_RSD = two_hundred_run_230229_std/two_hundred_run_230229_avg
     export[i,7] = two_hundred_run_230229_RSD
     # 232/229 Th
-    two_hundred_run_232229_avg = np.mean(five_point_avg[2
+    two_hundred_run_232229_avg = ma.mean(five_point_avg[2
                                                         ,:]/five_point_avg[0,:])
     export[i,8] = two_hundred_run_232229_avg
-    two_hundred_run_232229_std = np.std(five_point_avg[2
-                                                        ,:]/five_point_avg[0,:])/np.sqrt(five_point_avg.shape[1])
+    two_hundred_run_232229_std = ma.std(five_point_avg[2
+                                                        ,:]/five_point_avg[0,:])/ma.sqrt(five_point_avg.shape[1])
     two_hundred_run_232229_RSD = two_hundred_run_232229_std/two_hundred_run_232229_avg
     export[i,9] = two_hundred_run_232229_RSD
     
-#%% todo ez reduction
+#%% ez reduction
 
 # sample info. Exclude $ in file name in case that file is open
 names = [name for name in file_names if 'info' in name and '$' not in name]
@@ -273,18 +276,18 @@ else:
 
 ## MassBiasCountGain
 # mass bias
-SRM_c = np.mean(SRM_c_238235_avg)
-SRM_c_RSD = np.sqrt((np.sum((np.array(SRM_c_238235_avg) * np.array(SRM_c_238235_RSD))**2)))/3/SRM_c
+SRM_c = ma.mean(SRM_c_238235_avg)
+SRM_c_RSD = ma.sqrt((ma.sum((ma.array(SRM_c_238235_avg) * ma.array(SRM_c_238235_RSD))**2)))/3/SRM_c
 accepted_238235 = 137.55
 accepted_238235_RSD = 0.50*0.01
 mass_bias_per_amu = (SRM_c/accepted_238235-1)/3
-mass_bias_per_amu_RSD = np.sqrt((SRM_c_RSD**2+accepted_238235_RSD**2))
+mass_bias_per_amu_RSD = ma.sqrt((SRM_c_RSD**2+accepted_238235_RSD**2))
 
 # analog counting gain
-SRM_a = np.mean(SRM_a_238235_avg)
-SRM_a_RSD = np.sqrt((np.sum((np.array(SRM_a_238235_avg) * np.array(SRM_a_238235_RSD))**2)))/3/SRM_a
+SRM_a = ma.mean(SRM_a_238235_avg)
+SRM_a_RSD = ma.sqrt((ma.sum((ma.array(SRM_a_238235_avg) * ma.array(SRM_a_238235_RSD))**2)))/3/SRM_a
 counting_gain = SRM_a/SRM_c
-counting_gain_RSD = np.sqrt(SRM_a_RSD**2+SRM_c_RSD**2)
+counting_gain_RSD = ma.sqrt(SRM_a_RSD**2+SRM_c_RSD**2)
 
 ##Magic
 # mass bias correction
@@ -293,12 +296,12 @@ mass_bias_crxn = 1+mass_difference*mass_bias_per_amu
 mass_bias_crxn_RSD = mass_bias_per_amu_RSD*abs(mass_difference)
 for i in range(5):
     export[:,i*2] *= mass_bias_crxn[i]
-    export[:,i*2+1] = np.sqrt(export[:,i*2+1]**2+mass_bias_crxn_RSD[i]**2)
+    export[:,i*2+1] = ma.sqrt(export[:,i*2+1]**2+mass_bias_crxn_RSD[i]**2)
 
 # counting gain crxn
 for i in [0,8]:
     export[:,i] /= counting_gain
-    export[:,i+1] = np.sqrt(export[:,i+1]**2+counting_gain_RSD**2)
+    export[:,i+1] = ma.sqrt(export[:,i+1]**2+counting_gain_RSD**2)
 #%%
 # unspike
 unspike_matrix = np.array([[1.535934579,0.004656157,0.0030],[2.511807533,0.005569552,0.0022]])
@@ -307,13 +310,13 @@ for i,weight in [(0,238),(1,235),(2,234)]:
         export[:,i*2] = sample_info['f3']/1000*unspike_matrix[1,0]*export[:,i*2]*weight/236
     elif sample_info_type == 'xlsx':
         export[:,i*2] = sample_info[3]/1000*unspike_matrix[1,0]*export[:,i*2]*weight/236
-    export[:,i*2+1] = np.sqrt(unspike_matrix[1,2]**2+export[:,i*2+1]**2)
+    export[:,i*2+1] = ma.sqrt(unspike_matrix[1,2]**2+export[:,i*2+1]**2)
 for i,weight in [(3,230),(4,232)]:
     if sample_info_type == 'txt':
         export[:,i*2] = sample_info['f3']/1000*unspike_matrix[0,0]*export[:,i*2]*weight/229
     elif sample_info_type == 'xlsx':
         export[:,i*2] = sample_info[3]/1000*unspike_matrix[0,0]*export[:,i*2]*weight/229
-    export[:,i*2+1] = np.sqrt(unspike_matrix[0,2]**2+export[:,i*2+1]**2)
+    export[:,i*2+1] = ma.sqrt(unspike_matrix[0,2]**2+export[:,i*2+1]**2)
 #%%
 # Sed Cncn ng/g
 if sample_info_type == 'txt':
