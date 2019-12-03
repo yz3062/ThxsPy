@@ -48,8 +48,9 @@ def return_five_point_avg(file_name):
         txt_handle_r = np.transpose(txt_handle)
         data_df = pd.DataFrame(data=txt_handle_r[1:-1,:])
         data_df.plot(sharex=True,title=file_name)
-        plt.ion()
-        plt.show()
+        #plt.ioff()
+        #plt.gcf().show()
+        plt.savefig(file_name+'.png')
     # get rid of first column (mass) and last column (nan)
     txt_handle = txt_handle[:,1:-1]
     
@@ -66,7 +67,7 @@ def return_five_point_avg(file_name):
 #    else:
 #        return five_point_avg
     five_point_avg_2nd_outlier_search = reject_outliers(five_point_avg)
-    print file_name + " # outliers: " + str(ma.count_masked(five_point_avg_2nd_outlier_search))
+    print(file_name + " # outliers: " + str(ma.count_masked(five_point_avg_2nd_outlier_search)))
     return five_point_avg_2nd_outlier_search
     
 def reject_outliers(data, m = 2.):
