@@ -7,7 +7,7 @@ This software calculates thorium excess, a constant flux proxy for ocean sedimen
 
 If you're new to python, I recommend you simply download [Anaconda](https://www.anaconda.com/download/), which includes all the prerequisites. Alternatively, download the followings individually:
 
-Python 2
+Python 3 (as of v1.0.0, we have moved away from Python 2)
 
 [scipy](https://www.scipy.org/)
 
