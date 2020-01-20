@@ -27,27 +27,27 @@ python ThxsPy.py
 ```
 You'll be prompted to confirm the version of Th spikes you're using
 
-![alt text](/README_screenshots/spike_prompt_ThxsPy.png)
+![alt text](./README_screenshots/spike_prompt_ThxsPy.png)
 
 Hit "Enter", and you'll be asked whether you want to inspect the data in figures
 
-![alt text](/README_screenshots/inspect_figures_prompt.png)
+![alt text](./README_screenshots/inspect_figures_prompt.png)
 
 Hit "Enter". Figures of all the ICPMS counts will be saved in the same folder as the input files. You can check the figures to see if there's anything abnormal, e.g. a spike in counts or trailing in counts midway. Notice that the all isotopes are plotted on the same y-axis, meaning you'll mostly see the variations in major isotopes like 238U and 232Th. You'll then select data files as well as a sample info file. Notice that the file selector window sometimes doesn't pop up and is open in the background.
 
-![alt text](/README_screenshots/data_selection_ThxsPy.JPG)
+![alt text](./README_screenshots/data_selection_ThxsPy.JPG)
 
 Where you should double click "data" folder and select all the files in that folder
 
-![alt text](/README_screenshots/data_select_all_ThxsPy.JPG)
+![alt text](./README_screenshots/data_select_all_ThxsPy.JPG)
 
 Notice that alongside the data files, there's also a "sample_info.xlsx" file that looks like this
 
-![alt text](/README_screenshots/sample_info_screenshot.JPG)
+![alt text](./README_screenshots/sample_info_screenshot.JPG)
 
 And Voila! Calculation is done and you're asked to save the output file with a file name of your choice. You can either write the ".xlsx" or not. The program will add one for you if you don't.
 
-![alt text](/README_screenshots/save_output_ThxyPy.JPG)
+![alt text](./README_screenshots/save_output_ThxyPy.JPG)
 
 
 ## License

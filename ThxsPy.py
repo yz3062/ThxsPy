@@ -6,36 +6,26 @@ yzhou@ldeo.columbia.edu
 '''
 # If directly import mpl, crashes. Source: https://stackoverflow.com/questions/32019556/matplotlib-crashing-tkinter-application/34109240#34109240
 import matplotlib
-matplotlib.use("TkAgg")
+# matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 import numpy as np
 import numpy.ma as ma
 from scipy import stats # for linear regression
-from Tkinter import Tk
-from tkFileDialog import askopenfilenames, asksaveasfilename
+import tkinter as tk
+from tkinter import filedialog
 import sys
 import pandas as pd
 
 #import subprocess
 
-spike_answer = str(raw_input("Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values. [y] or n:") or 'y')
+spike_answer = str(input("Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values. [y] or n:") or 'y')
 if spike_answer == 'n':
     sys.exit()
-figure_answer = str(raw_input("Do you want to inspect ICPMS raw output in figures?[y] or n:") or 'y')
+figure_answer = str(input("Do you want to inspect ICPMS raw output in figures?[y] or n:") or 'y')
 
-
-## check OS
-#if platform.system() == 'Windows':
-#    spike_answer = ctypes.cdll.user32.MessageBoxA(0, "Are you using 2006-2 UTh spike? If not, click no and search \'unspike\' in script and change its values", "2006-2 spike?", 4)
-#    if spike_answer == 7:
-#        sys.exit()
-#elif platform.system() == 'Darwin':
-#    window = Tk()
-#    window.wm_withdraw()
-#    tkMessageBox.showinfo(title="2006-2 spike?", message="Are you using 2006-2 UTh spike? If not, exit and search \'unspike\' in script and change its values")
-
-Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-file_names = askopenfilenames(title="Select all the ICPMS output files and a \'sample_info' file") # show an "Open" dialog box and return the path to the selected file
+root = tk.Tk()
+root.withdraw() # we don't want a full GUI, so keep the root window from appearing
+file_names = filedialog.askopenfilenames(title="Select all the ICPMS output files and a \'sample_info' file") # show an "Open" dialog box and return the path to the selected file
 
 def return_five_point_avg(file_name):
     # read txt as csv, using tab as separator
@@ -348,7 +338,7 @@ elif sample_info_type == 'xlsx':
 export_df = pd.concat([sample_name_df,export_data_df],axis=1)
 
 #%% save to csv
-output_file_name = asksaveasfilename(title='Save the output file as')
+output_file_name = filedialog.asksaveasfilename(title='Save the output file as')
 if 'xlsx' not in output_file_name:
     output_file_name = output_file_name + '.xlsx'
 export_df.to_excel(output_file_name)
