@@ -15,6 +15,7 @@ import tkinter as tk
 from tkinter import filedialog
 import sys
 import pandas as pd
+import pprint
 
 #import subprocess
 
@@ -64,11 +65,13 @@ def reject_outliers(data, m = 2.):
     return data.mask(s>m)
 
 #%% process blanks and stds. Calculate tailcrxn slope and intercept
-names = [name for name in file_names if 'Blank' in name or 'blank' in name or
-     'Th_std' in name or 'U_std' in name]
+names = [name for name in file_names if ('Blank' in name or 'blank' in name or
+     'Th_std' in name or 'U_std' in name) and 'SRM' not in name]
 if not names:
     raise RuntimeError('No blank or std files found!')
-
+print("Identified the following files as either blank or U_std or Th_std:")
+pprint.pprint(names)
+print('\n')
 # set up lists for tail corrections
 # the three lists are for 238, 236, 234
 U_std_tailCrxn = [[],[],[]]
@@ -118,12 +121,39 @@ slopes_tailCrxn[2], intercepts_tailCrxn[2], correlations_tailCrxn[2] = stats.lin
 Th234_TailCrxn = np.concatenate((Th_std_tailCrxn[3], blank_Th_tailCrxn[3]))
 slopes_tailCrxn[3], intercepts_tailCrxn[3], correlations_tailCrxn[3] = stats.linregress(Th232_TailCrxn, Th234_TailCrxn)[:3]
 
+#%% SRM_a blank
+names = [name for name in file_names if 'SRM' in name and 'analog' in name and ('blank' in name or 'Blank' in name or 'BLANK' in name)]
+if not names:
+    SRM_a_blank_flag = False
+else:
+    SRM_a_blank_flag = True
+    print("Identified the following files as SRM_a blanks:")
+    pprint.pprint(names)
+    print('\n')
+    
+# set up lists to store the 3 SRM_a_blanks
+SRM_a_238_blank_avg = []
+SRM_a_235_blank_avg = []
+
+for file_name in names:
+    five_point_avg = return_five_point_avg(file_name)
+    
+    two_hundred_run_238_avg = ma.mean(five_point_avg[2,:])
+    two_hundred_run_235_avg = ma.mean(five_point_avg[1,:])
+    SRM_a_238_blank_avg.append(two_hundred_run_238_avg)
+    SRM_a_235_blank_avg.append(two_hundred_run_235_avg)
+
 #%% SRM_a
-names = [name for name in file_names if 'SRM' in name and 'analog' in name]
+names = [name for name in file_names if 'SRM' in name and 'analog' in name and 'blank' not in name and 'Blank' not in name and 'BLANK' not in name]
 if not names:
     raise RuntimeError('No SRM_a files found!')
+print("Identified the following files as SRM_a:")
+pprint.pprint(names)
+print('\n')
 
 # set up lists to store the SRM_a
+SRM_a_238_avg = []
+SRM_a_235_avg = []
 SRM_a_238235_avg = []
 SRM_a_238235_std = []
 SRM_a_238235_RSD = []
@@ -131,21 +161,54 @@ SRM_a_238235_RSD = []
 for file_name in names:
     five_point_avg = return_five_point_avg(file_name)
     
+    two_hundred_run_SRM_a_238_avg = ma.mean(five_point_avg[2,:])
+    two_hundred_run_SRM_a_235_avg = ma.mean(five_point_avg[1,:])
+    SRM_a_238_avg.append(two_hundred_run_SRM_a_238_avg)
+    SRM_a_235_avg.append(two_hundred_run_SRM_a_235_avg)
     two_hundred_run_238235_avg = ma.mean(five_point_avg[2
                                                     ,:]/five_point_avg[1,:])
-    SRM_a_238235_avg.append(two_hundred_run_238235_avg)
     two_hundred_run_238235_std = ma.std(five_point_avg[2
                                                    ,:]/five_point_avg[1,:])/ma.sqrt(five_point_avg.shape[1])
     SRM_a_238235_std.append(two_hundred_run_238235_std)
     two_hundred_run_238235_RSD = two_hundred_run_238235_std/two_hundred_run_238235_avg
     SRM_a_238235_RSD.append(two_hundred_run_238235_RSD)
+if SRM_a_blank_flag:
+    SRM_a_238235_avg = (SRM_a_238_avg - ma.mean(SRM_a_238_blank_avg)) / (SRM_a_235_avg - ma.mean(SRM_a_235_blank_avg))
+else:
+    SRM_a_238235_avg = ma.array(SRM_a_238_avg) / ma.array(SRM_a_235_avg)
+#%% SRM_c blank
+names = [name for name in file_names if 'SRM' in name and 'massbias' in name and ('blank' in name or 'Blank' in name or 'BLANK' in name)]
+if not names:
+    SRM_c_blank_flag = False
+else:
+    SRM_c_blank_flag = True
+    print("Identified the following files as SRM_c blanks:")
+    pprint.pprint(names)
+    print('\n')
+    
+# set up lists to store the 3 SRM_a_blanks
+SRM_c_238_blank_avg = []
+SRM_c_235_blank_avg = []
+
+for file_name in names:
+    five_point_avg = return_five_point_avg(file_name)
+    
+    two_hundred_run_238_avg = ma.mean(five_point_avg[2,:])
+    two_hundred_run_235_avg = ma.mean(five_point_avg[1,:])
+    SRM_c_238_blank_avg.append(two_hundred_run_238_avg)
+    SRM_c_235_blank_avg.append(two_hundred_run_235_avg)
     
 #%% SRM_c
-names = [name for name in file_names if 'SRM' in name and 'massbias' in name]
+names = [name for name in file_names if 'SRM' in name and 'massbias' in name and 'blank' not in name and 'Blank' not in name and 'BLANK' not in name]
 if not names:
     raise RuntimeError('No SRM massbias files found!')
-    
+print("Identified the following files as either SRM_c:")
+pprint.pprint(names)
+print('\n')    
+
 # set up lists to store the SRM_c
+SRM_c_238_avg = []
+SRM_c_235_avg = []
 SRM_c_238235_avg = []
 SRM_c_238235_std = []
 SRM_c_238235_RSD = []
@@ -153,15 +216,21 @@ SRM_c_238235_RSD = []
 for file_name in names:
     five_point_avg = return_five_point_avg(file_name)
     
+    two_hundred_run_SRM_c_238_avg = ma.mean(five_point_avg[2,:])
+    two_hundred_run_SRM_c_235_avg = ma.mean(five_point_avg[1,:])
+    SRM_c_238_avg.append(two_hundred_run_SRM_c_238_avg)
+    SRM_c_235_avg.append(two_hundred_run_SRM_c_235_avg)
     two_hundred_run_238235_avg = ma.mean(five_point_avg[2
                                                     ,:]/five_point_avg[1,:])
-    SRM_c_238235_avg.append(two_hundred_run_238235_avg)
     two_hundred_run_238235_std = ma.std(five_point_avg[2
                                                    ,:]/five_point_avg[1,:])/ma.sqrt(five_point_avg.shape[1])
     SRM_c_238235_std.append(two_hundred_run_238235_std)
     two_hundred_run_238235_RSD = two_hundred_run_238235_std/two_hundred_run_238235_avg
     SRM_c_238235_RSD.append(two_hundred_run_238235_RSD)
-
+if SRM_c_blank_flag:
+    SRM_c_238235_avg = (SRM_c_238_avg - ma.mean(SRM_c_238_blank_avg)) / (SRM_c_235_avg - ma.mean(SRM_c_235_blank_avg))
+else:
+    SRM_c_238235_avg = ma.array(SRM_c_238_avg) / ma.array(SRM_c_235_avg)
 #%% sample results
 
 # if this is UTh data file
@@ -169,7 +238,9 @@ names = [name for name in file_names if 'UTh.txt' in name]
 if not names:
     raise RuntimeError('No UTh files found!')
 names.sort()
-
+print("Identified the following files as sample files:")
+pprint.pprint(names)
+print('\n')
 # set up the 2d array as in export spreadsheet
 # Columns: 238/236_avg    238/236_RSD    235/236_avg    235/236_RSD    234/236_avg    234/236_RSD    230/229_avg    230/229_stdev    232/229_avg    232/229_stdev
 # Rows: UTh1-num_samples
@@ -316,6 +387,7 @@ elif sample_info_type == 'xlsx':
     multiplication_factor=[0.001,1,1000,1000,0.001]
     for i in range(5):
         export[:,i*2] = np.squeeze(export[:,i*2]-export[blank_index,i*2])*multiplication_factor[i]/(sample_info[2]/1000)
+
 #%%
 # Sed Cncn dpm/g
 sed_cncn_dpm_matrix=[0.752049334,0.013782268,0.045747747,0.242530074]
