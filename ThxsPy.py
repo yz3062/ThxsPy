@@ -118,8 +118,8 @@ Th229_TailCrxn = np.concatenate((Th_std_tailCrxn[1], blank_Th_tailCrxn[1]))
 slopes_tailCrxn[1], intercepts_tailCrxn[1], correlations_tailCrxn[1] = stats.linregress(Th232_TailCrxn, Th229_TailCrxn)[:3]
 Th230_TailCrxn = np.concatenate((Th_std_tailCrxn[2], blank_Th_tailCrxn[2]))
 slopes_tailCrxn[2], intercepts_tailCrxn[2], correlations_tailCrxn[2] = stats.linregress(Th232_TailCrxn, Th230_TailCrxn)[:3]
-Th234_TailCrxn = np.concatenate((Th_std_tailCrxn[3], blank_Th_tailCrxn[3]))
-slopes_tailCrxn[3], intercepts_tailCrxn[3], correlations_tailCrxn[3] = stats.linregress(Th232_TailCrxn, Th234_TailCrxn)[:3]
+U234_TailCrxn = np.concatenate((Th_std_tailCrxn[3], blank_Th_tailCrxn[3]))
+slopes_tailCrxn[3], intercepts_tailCrxn[3], correlations_tailCrxn[3] = stats.linregress(Th232_TailCrxn, U234_TailCrxn)[:3]
 
 #%% SRM_a blank
 names = [name for name in file_names if 'SRM' in name and 'analog' in name and ('blank' in name or 'Blank' in name or 'BLANK' in name)]
