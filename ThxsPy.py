@@ -332,7 +332,7 @@ else:
 # mass bias
 SRM_c = ma.mean(SRM_c_238235_avg)
 SRM_c_RSD = ma.sqrt((ma.sum((ma.array(SRM_c_238235_avg) * ma.array(SRM_c_238235_RSD))**2)))/3/SRM_c
-accepted_238235 = 137.55
+accepted_238235 = 137.818 # Hiess et al., 2012
 accepted_238235_RSD = 0.50*0.01
 mass_bias_per_amu = (SRM_c/accepted_238235-1)/3
 mass_bias_per_amu_RSD = ma.sqrt((SRM_c_RSD**2+accepted_238235_RSD**2))
@@ -383,7 +383,10 @@ if sample_info_type == 'txt':
 elif sample_info_type == 'xlsx':
     if not (sample_info[0]=='BLANK').any():
         raise RuntimeError('Cannot determine from sample name in sample info which sample is blank. Name it BLANK')
-    blank_index = np.argwhere(sample_info[0]=='BLANK')
+    # blank_index = np.argwhere(sample_info[0]=='BLANK')
+    # The following line is a temp fix for a pandas bug
+    # https://github.com/pandas-dev/pandas/issues/35331
+    blank_index = sample_info[0][sample_info[0]=='BLANK'].index[0]
     multiplication_factor=[0.001,1,1000,1000,0.001]
     for i in range(5):
         export[:,i*2] = np.squeeze(export[:,i*2]-export[blank_index,i*2])*multiplication_factor[i]/(sample_info[2]/1000)
