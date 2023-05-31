@@ -334,7 +334,7 @@ SRM_c = ma.mean(SRM_c_238235_avg)
 SRM_c_RSD = ma.sqrt((ma.sum((ma.array(SRM_c_238235_avg) * ma.array(SRM_c_238235_RSD))**2)))/3/SRM_c
 accepted_238235 = 137.818 # Hiess et al., 2012
 accepted_238235_RSD = 0.50*0.01
-mass_bias_per_amu = (SRM_c/accepted_238235-1)/3
+mass_bias_per_amu = (accepted_238235/SRM_c-1)/3
 mass_bias_per_amu_RSD = ma.sqrt((SRM_c_RSD**2+accepted_238235_RSD**2))
 
 # analog counting gain
